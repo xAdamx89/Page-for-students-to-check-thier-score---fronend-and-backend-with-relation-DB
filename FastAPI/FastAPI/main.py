@@ -124,7 +124,35 @@ def klasa_uczen_przedmiot(klasa: str, numer_ucznia: int, przedmiot: str):
 
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
-    
+
+
+@app.get("/klasa_uczen_przedmiot_prob/{klasa}/{numer_ucznia}/{przedmiot}")
+def klasa_uczen_przedmiot_prob(klasa: str, numer_ucznia: int, przedmiot: str):
+    try:
+        with psycopg.connect(conn_str) as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                '''
+                    SELECT * 
+                    FROM Wpisy_punktow 
+                    WHERE Klasa_ucznia = %s AND (Przedmiot = 'PRob' OR przedmiot = 'Prob') AND Numer_ucznia = %s
+                    ORDER BY Data_wpisu;
+                ''',
+                    (klasa, numer_ucznia)
+                )
+
+                rows = cur.fetchall()
+                if not rows:
+                    return {"result": []}
+
+                columns = [desc[0] for desc in cur.description]
+                result = [dict(zip(columns, row)) for row in rows]
+                return {"result": result}
+
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
 # Model danych wpisu punktów
 class WpisPunktow(BaseModel):
     klasa_ucznia: str

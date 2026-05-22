@@ -33,11 +33,18 @@ document.addEventListener("DOMContentLoaded", () => {
         const przedmiot = przedmioty[0];
 
         try {
-            // Pierwszy fetch — punkty ucznia
-            const response = await fetch(
-                `https://fastapi.adam-mazurek.pl/klasa_uczen_przedmiot/${klasa}/${numer}/${przedmiot}`
-            );
-
+            
+            if (przedmiot === "PRob") {
+                // Jeżeli Podstawy robotyki to fetchuje też błędnie wpisane wpisy Prob, PROb itd...
+                const response = await fetch(
+                    `https://fastapi.adam-mazurek.pl/klasa_uczen_przedmiot_prob/${klasa}/${numer}/${przedmiot}`
+                );                
+            } else {
+                // Pierwszy fetch — punkty ucznia
+                const response = await fetch(
+                    `https://fastapi.adam-mazurek.pl/klasa_uczen_przedmiot/${klasa}/${numer}/${przedmiot}`
+                );
+            }
 
             let response1;
 
