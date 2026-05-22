@@ -128,43 +128,75 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // ------------------- Formularz sprawdzania punktów i listy zajęć -------------------
-    const formularz = document.getElementById("formularz");
-    formularz.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        console.log("Listener dla #formularz podpięty");
+    const listaNapis = document.getElementById("lista-napis");
+        if (listaNapis) {
+            listaNapis.innerHTML = "Lista wszystkich wpisów";
+        } else {
+            console.warn("Nie znaleziono elementu #lista-napis w DOM");
+        }
 
-        const listaNapis = document.getElementById("lista-napis");
-        if (listaNapis) listaNapis.innerHTML = "Lista wszystkich wpisów";
 
-        const klasy = Array.from(document.querySelectorAll('input[name="klasa"]:checked')).map(el => el.value);
-        const przedmioty = Array.from(document.querySelectorAll('input[name="przedmiot"]:checked')).map(el => el.value);
-        const numer = parseInt(document.getElementById("Numer").value, 10);
+        const klasy = Array.from(document.querySelectorAll('input[name="klasa"]:checked'))
+                            .map(el => el.value);
+        const przedmioty = Array.from(document.querySelectorAll('input[name="przedmiot"]:checked'))
+                                 .map(el => el.value);
+        const numer = document.getElementById("Numer").value;
 
-        if (klasy.length === 0 || przedmioty.length === 0 || isNaN(numer)) {
-            alert("Proszę zaznaczyć przynajmniej jedną klasę, jeden przedmiot oraz numer w dzienniku");
+        if (klasy.length === 0 || przedmioty.length === 0) {
+            alert("Proszę zaznaczyć przynajmniej jedną klasę i jeden przedmiot");
             return;
         }
 
         const klasa = klasy[0];
         const przedmiot = przedmioty[0];
 
-        try {
-            // Punkty ucznia
-            const response = await fetch(`https://fastapi.adam-mazurek.pl/klasa_uczen_przedmiot/${klasa}/${numer}/${przedmiot}`);
-            const data = await response.json();
+        console.log("Wybrany numer ucznia:", numer);
+        console.log("Wybrana klasa:", klasa);
+        console.log("Wybrany przedmiot:", przedmiot);
 
-            // Lista zajęć
-            let response1;
-            if (klasa !== "5g") {
-                response1 = await fetch(`https://fastapi.adam-mazurek.pl/api/get_lista/${klasa}/${przedmiot}`);
+        try {
+            
+            let response;
+
+            if (przedmiot.trim().toLowerCase() === "prob") {
+
+                console.log("Wysyłam request do endpointa PRob");
+
+                response = await fetch(
+                    `https://fastapi.adam-mazurek.pl/klasa_uczen_przedmiot_prob/${klasa}/${numer}`
+                );
+
             } else {
-                response1 = await fetch(`https://fastapi.adam-mazurek.pl/api/select_jakie_wpisy/${klasa}/${przedmiot}`);
+
+                console.log("Wysyłam standardowy request");
+
+                response = await fetch(
+                    `https://fastapi.adam-mazurek.pl/klasa_uczen_przedmiot/${klasa}/${numer}/${przedmiot}`
+                );
             }
+
+            let response1;
+
+            if(klasa !== '5g') {
+                // Drugi fetch — lista zajęć jeżeli nie 5g
+                response1 = await fetch(
+                    `https://fastapi.adam-mazurek.pl/api/get_lista/${klasa}/${przedmiot}`
+                );
+            } else {
+                // Drugi fetch — lista zajęć jeżeli 5g
+                response1 = await fetch(
+                    `https://fastapi.adam-mazurek.pl/api/select_jakie_wpisy/${klasa}/${przedmiot}`
+                );
+            }
+
+            if (!response.ok || !response1.ok) {
+                throw new Error("Błąd połączenia z serwerem");
+            }
+
+            const data = await response.json();
             const result1 = await response1.json();
 
-            if (!response.ok || !response1.ok) throw new Error("Błąd połączenia z serwerem");
-
-            // --- Tabela punktów ---
+            // Tabela punktów ucznia
             const tabelaNaglowki = document.getElementById("naglowki-punkty");
             const tabelaWiersze = document.getElementById("wiersze-punkty");
             tabelaNaglowki.innerHTML = "";
@@ -179,18 +211,19 @@ document.addEventListener("DOMContentLoaded", () => {
                     th.textContent = col;
                     tabelaNaglowki.appendChild(th);
                 });
+
                 data.result.forEach(row => {
                     const tr = document.createElement("tr");
                     columns.forEach(col => {
                         const td = document.createElement("td");
-                        td.textContent = row[col] ?? "";
+                        td.textContent = row[col];
                         tr.appendChild(td);
                     });
                     tabelaWiersze.appendChild(tr);
                 });
             }
 
-            // --- Tabela lista zajęć ---
+            // Tabela lista zajęć
             const tabelaNaglowki2 = document.getElementById("naglowki-lista");
             const tabelaWiersze2 = document.getElementById("wiersze-lista");
             tabelaNaglowki2.innerHTML = "";
@@ -205,20 +238,20 @@ document.addEventListener("DOMContentLoaded", () => {
                     th.textContent = col;
                     tabelaNaglowki2.appendChild(th);
                 });
+
                 result1.result.forEach(row => {
                     const tr = document.createElement("tr");
                     columns2.forEach(col => {
                         const td = document.createElement("td");
-                        td.textContent = row[col] ?? "";
+                        td.textContent = row[col];
                         tr.appendChild(td);
                     });
                     tabelaWiersze2.appendChild(tr);
                 });
             }
 
-        } catch (err) {
-            console.error(err);
+        } catch (error) {
+            console.error("Błąd pobierania danych:", error);
             alert("Wystąpił błąd przy pobieraniu danych");
         }
     });
-});

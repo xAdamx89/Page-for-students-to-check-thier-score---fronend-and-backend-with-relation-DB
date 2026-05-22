@@ -126,8 +126,8 @@ def klasa_uczen_przedmiot(klasa: str, numer_ucznia: int, przedmiot: str):
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@app.get("/klasa_uczen_przedmiot_prob/{klasa}/{numer_ucznia}/{przedmiot}")
-def klasa_uczen_przedmiot_prob(klasa: str, numer_ucznia: int, przedmiot: str):
+@app.get("/klasa_uczen_przedmiot_prob/{klasa}/{numer_ucznia}")
+def klasa_uczen_przedmiot_prob(klasa: str, numer_ucznia: int):
     try:
         with psycopg.connect(conn_str) as conn:
             with conn.cursor() as cur:

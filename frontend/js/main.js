@@ -1,3 +1,9 @@
+async function loadHTML(id, file) {
+    const response = await fetch(file);
+    const data = await response.text();
+    document.getElementById(id).innerHTML = data;
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     //Rejestracja wizyty na stronie
     fetch("https://fastapi.adam-mazurek.pl/api/visit", { method: "POST" })
@@ -18,7 +24,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
 
-        const klasy = Array.from(document.querySelectorAll('input[name^="klasa"]:checked'))
+        const klasy = Array.from(document.querySelectorAll('input[name="klasa"]:checked'))
                             .map(el => el.value);
         const przedmioty = Array.from(document.querySelectorAll('input[name="przedmiot"]:checked'))
                                  .map(el => el.value);
@@ -32,16 +38,27 @@ document.addEventListener("DOMContentLoaded", () => {
         const klasa = klasy[0];
         const przedmiot = przedmioty[0];
 
+        console.log("Wybrany numer ucznia:", numer);
+        console.log("Wybrana klasa:", klasa);
+        console.log("Wybrany przedmiot:", przedmiot);
+
         try {
             
-            if (przedmiot === "PRob") {
-                // Jeżeli Podstawy robotyki to fetchuje też błędnie wpisane wpisy Prob, PROb itd...
-                const response = await fetch(
-                    `https://fastapi.adam-mazurek.pl/klasa_uczen_przedmiot_prob/${klasa}/${numer}/${przedmiot}`
-                );                
+            let response;
+
+            if (przedmiot.trim().toLowerCase() === "prob") {
+
+                console.log("Wysyłam request do endpointa PRob");
+
+                response = await fetch(
+                    `https://fastapi.adam-mazurek.pl/klasa_uczen_przedmiot_prob/${klasa}/${numer}`
+                );
+
             } else {
-                // Pierwszy fetch — punkty ucznia
-                const response = await fetch(
+
+                console.log("Wysyłam standardowy request");
+
+                response = await fetch(
                     `https://fastapi.adam-mazurek.pl/klasa_uczen_przedmiot/${klasa}/${numer}/${przedmiot}`
                 );
             }
