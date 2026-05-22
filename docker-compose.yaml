@@ -9,13 +9,13 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - ./pgdata/pgdata/:/var/lib/postgresql/data   # trwałe przechowywanie danych
+      - ./db-strona-punkty/pgdata/:/var/lib/postgresql/data   # trwałe przechowywanie danych
 
   fastapi:
     build: ./FastAPI/FastAPI
     container_name: fastapi_app
     ports:
-      - "8005:8005"
+      - "8080:8005"
     depends_on:
       - db
     env_file:
